@@ -24,6 +24,10 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Initialize and apply Terraform in multiple folders
+        env:
+          TF_VERSION: 1.12.2  # specify your terraform version
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           # Define your folders, e.g., "infra/network" and "infra/apps"
           TERRAFORM_FOLDERS=(
