@@ -27,7 +27,7 @@ jobs:
         run: |
           # Define your folders, e.g., "infra/network" and "infra/apps"
           TERRAFORM_FOLDERS=(
-            "terraform-ecs/network"
+            "terraform-ecs"
             # add more folders as needed
           )
 
