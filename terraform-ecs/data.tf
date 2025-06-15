@@ -10,6 +10,6 @@ data "aws_subnet" "default" {
   }
   filter {
     name   = "availability-zone"
-    values = ["us-west-2a"]  # change as needed
+    values = ["us-west-2a"] # change as needed
   }
 }

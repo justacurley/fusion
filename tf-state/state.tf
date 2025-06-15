@@ -1,6 +1,6 @@
 # Create an S3 bucket for storing Terraform state
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "fusion-statefiles"  # Change this to a unique bucket name
+  bucket = "fusion-statefiles" # Change this to a unique bucket name
 
   # Prevent accidental deletion of this bucket
   lifecycle {
@@ -49,13 +49,13 @@ resource "aws_s3_bucket_policy" "terraform_state_policy" {
           }
         }
       },
-            {
-        Sid       = "AllowSpecificIAMUser"
-        Effect    = "Allow"
+      {
+        Sid    = "AllowSpecificIAMUser"
+        Effect = "Allow"
         Principal = {
           AWS = "arn:aws:iam::471230323408:user/terraform"
         }
-        Action    = [
+        Action = [
           "s3:*"
         ]
         Resource = [
