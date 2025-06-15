@@ -1,27 +1,26 @@
-$global:EntriesPath = "C:\Users\curle\source\backsurgery\entries.json"
-$global:SchemaPath = "C:\Users\curle\source\backsurgery\schema.json"
+$global:EntriesPath = Join-Path $PSScriptRoot "entries.json"
+$global:SchemaPath = Join-Path $PSScriptRoot "schema.json"
 function Add-Entry {
     [CmdletBinding()]
     param (
         [string]$Date = (Get-Date -f "MMdd"),
         [string]$Time = (Get-Date -f "HHmm"),
-        [parameter(Mandatory)]
-        [ValidateSet("tylenol1", "dilaudid4", "valium5", "vitaminD5", "lexapro2", "lexapro1", "journavx")]
+        [parameter()]
+        [ValidateSet("tylenol1", "dilaudid4", "valium5", "vitaminD5", "lexapro2", "lexapro1", "journavx", "oxycodone")]
         [string[]]$Medications,
         [string]$ScarImage,
         [parameter(Mandatory = $false)]
-        [ValidateSet('walking', 'standing')]
+        [ValidateSet('walking', 'standing', 'stairs')]
         [string[]]$Activities,
         [parameter()]
-        [ValidateScript({ $_.Count -eq $Activities.Count })]
+        # [ValidateScript({ $_.Count -eq $Activities.Count })]
         [int[]]$ActivitiesDuration,
         [string[]]$PainLocation,
         [string[]]$PainLevel,
-        [int]$o2,
+        [string]$o2,
         [string]$bpr,
         [string]$Note,
-        [parameter(Mandatory)]
-        [int]$Sleep
+        [string]$Sleep
     )    
     begin {
         # Do some param validation we cant do in ValidateScript
@@ -38,9 +37,12 @@ function Add-Entry {
         $Entries = Get-Content -Path $Entriespath | ConvertFrom-Json -AsHashtable
         # Add Date and Time keys
         if ($Date -notin $Entries.keys) {
-            $Entries.Add($Date, @{$Time = $Schema["EmptyEntry"] })
+            $Entries.add($Date,@{})
         }
-        else { $Entries[$Date].Add($Time, $Schema["EmptyEntry"]) }
+        if ($Time -notin $Entries[$Date].keys) {
+            $Entries[$Date].add($Time,@{})           
+        }
+        $Entries[$Date][$Time]=$Schema["EmptyEntry"]
         $CurrentEntry = $Entries[$Date][$Time]
         # Add medications
         $Medications.ForEach({
@@ -63,9 +65,17 @@ function Add-Entry {
         $CurrentEntry["o2"] = $o2
         $CurrentEntry["bpr"] = $bpr
         $CurrentEntry["note"] = $Note
+        if ($Sleep -and ('Sleep' -notin $Entries[$Date].keys)) {
+            $Entries[$Date]['Sleep'] = $Sleep
+        }
+        if ($ScarImage -and ('ScarImage' -notin $Entries[$Date].keys)) {
+            $Entries[$Date]['ScarImage'] = $ScarImage
+        }
+        
         $Entries[$Date][$Time] = $CurrentEntry
-        Out-File entries.json -InputObject ($Entries | convertto-json -depth 99)
+        Out-File $EntriesPath -InputObject ($Entries | convertto-json -depth 99)
     }
 }
-
-Add-Entry -Time 1300 -Medications dilaudid4 -PainLocation back -PainLevel 5-6 -o2 90 -bpr 120/80 -Note "short walk this morning, didn't increase pain"
+Set-Alias -Name ae -Value Add-Entry
+Export-ModuleMember -Function Add-Entry -Alias ae
+# Add-Entry -Time 1300 -Medications dilaudid4 -PainLocation back -PainLevel 5-6 -o2 90 -bpr 120/80 -Note "short walk this morning, didn't increase pain"

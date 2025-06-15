@@ -1,13 +1,14 @@
 {
     "EmptyEntry": {
         "Medications": {},
-        "Pain": [],
-        "Activities": [],
-        "o2": null,
-        "bpr": null,
+        "Pain": {},
+        "Activities": {},
+        "o2": "",
+        "bpr": "",
         "note": ""
     },
     "Medications": {
+        "oxycodone": "5mg",
         "tylenol1": "1g",
         "dilaudid4": "4mg",
         "valium5": "5mg",
