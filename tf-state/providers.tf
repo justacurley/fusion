@@ -4,8 +4,8 @@ terraform {
       source  = "hashicorp/aws"
       version = "5.98.0"
     }
-  } 
+  }
 }
 provider "aws" {
-  region = "us-west-2"  # Change this to your desired region
+  region = "us-west-2" # Change this to your desired region
 }
