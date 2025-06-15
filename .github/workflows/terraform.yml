@@ -46,6 +46,6 @@ jobs:
             if [ "${{ github.ref }}" == "refs/heads/main" ]; then
               # Apply only if on main
               terraform apply -input=false -auto-approve tfplan
-
+            fi
             cd -  # Return to root
           done
