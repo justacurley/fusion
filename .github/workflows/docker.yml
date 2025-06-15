@@ -1,0 +1,30 @@
+name: Build and Push Docker Image to AWS ECR
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+        with:
+          region: us-east-1  # Replace with your AWS region
+
+      - name: Build Docker image
+        run: |
+          IMAGE_TAG=LATEST
+          REPOSITORY_URI=YOUR_ECR_REPOSITORY_URI  # Replace with your ECR repository URI
+          docker build -t $REPOSITORY_URI:$IMAGE_TAG .
+
+      - name: Push Docker image to ECR
+        run: |
+          IMAGE_TAG=LATEST
+          REPOSITORY_URI=YOUR_ECR_REPOSITORY_URI  # Replace with your ECR repository URI
+          docker push $REPOSITORY_URI:$IMAGE_TAG
