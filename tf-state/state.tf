@@ -48,7 +48,21 @@ resource "aws_s3_bucket_policy" "terraform_state_policy" {
             "aws:SecureTransport" = "false"
           }
         }
-      }
+      },
+            {
+        Sid       = "AllowSpecificIAMUser"
+        Effect    = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::471230323408:user/terraform"
+        }
+        Action    = [
+          "s3:*"
+        ]
+        Resource = [
+          aws_s3_bucket.terraform_state.arn,
+          "${aws_s3_bucket.terraform_state.arn}/*"
+        ]
+      },
     ]
   })
 }
