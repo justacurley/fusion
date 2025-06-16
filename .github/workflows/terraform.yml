@@ -49,16 +49,27 @@ jobs:
 
           
       - name: Initialize and apply Terraform in multiple folders
+        env:
+          TF_FOLDER: "${{ github.event.inputs.tf-folder }}"
+          MIGRATE_STATE: "${{ github.event.inputs.migrate-state }}"
+          DESTROY: "${{ github.event.inputs.destroy }}"
         run: |
           # TF Lint
           terraform fmt -recursive
           terraform fmt -recursive -check
           # Define your folders, e.g., "infra/network" and "infra/apps"
-          TERRAFORM_FOLDERS=(
-            "terraform-ecr"
-            # "terraform-ecs"
-            # add more folders as needed
-          )
+          if ! [ -n "$TF_FOLDER" ]; then
+            TERRAFORM_FOLDERS=(
+              "$TF_FOLDER"
+            )
+          else
+            TERRAFORM_FOLDERS=(
+              "terraform-ecr"
+              # "terraform-ecs"
+              # add more folders as needed
+            )
+          fi
+          echo "${TERAFORM_FOLDERS[@]}"
 
           for folder in "${TERRAFORM_FOLDERS[@]}"; do
             echo "Processing folder: $folder"
