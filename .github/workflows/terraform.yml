@@ -64,7 +64,7 @@ jobs:
                 "${{ github.event.inputs.tf-folder }}"
               )
           fi
-          echo {TERRAFORM_FOLDERS[@]}
+          echo "{TERRAFORM_FOLDERS[@]}"
 
           for folder in "${TERRAFORM_FOLDERS[@]}"; do
             echo "Processing folder: $folder"
