@@ -2,7 +2,12 @@ name: Build and Push Docker Image to AWS ECR
 
 on:
   workflow_call:
-  workflow_dispatch:
+    inputs:
+      destroy:
+        description: 'destroy'
+        type: 'boolean'
+        required: false
+        default: false
     
 
 jobs:
