@@ -97,7 +97,7 @@ jobs:
       uses: ./.github/workflows/docker.yml
          
   deploy-ecs:
-    needs: [check-ecr, deploy-ecr]
+    needs: [check-ecr, deploy-ecr, trigger-docker-workflow]
     environment: Production
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'  # Optional, for clarity
