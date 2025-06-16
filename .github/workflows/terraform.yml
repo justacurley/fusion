@@ -88,16 +88,16 @@ jobs:
           fi
         working-directory: ./terraform-ecr
 
-  trigger-docker-workflow:
+  call-docker-workflow:
     needs: [check-ecr, deploy-ecr]
     if: needs.check-ecr.outputs.ecr_exists == 'false'
     runs-on: ubuntu-latest
     steps:
     - name: Trigger Docker Workflow
-      uses: ./.github/workflows/docker.yml
+      uses: ./.github/workflows/docker.yml@dev
          
   deploy-ecs:
-    needs: [check-ecr, deploy-ecr, trigger-docker-workflow]
+    needs: [check-ecr, deploy-ecr, call-docker-workflow]
     environment: Production
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'  # Optional, for clarity
