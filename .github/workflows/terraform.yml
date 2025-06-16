@@ -78,7 +78,7 @@ jobs:
 
             # Initialize Terraform
             MIGRATE=''
-            if [ "${{ github.event.inputs.migrate-state }}" == "true" ]; then
+            if [ "$MIGRATE_STATE" == "true" ]; then
               MIGRATE='-migrate-state'
             fi
             terraform init -input=false $MIGRATE
@@ -91,7 +91,7 @@ jobs:
               # Apply only if on main
               terraform apply -input=false -auto-approve tfplan
             fi
-            if [ "${{ github.event.inputs.destroy }}" == "true" ]; then
+            if [ "$DESTROY" == "true" ]; then
               terraform destroy -auto-approve
             fi
             
