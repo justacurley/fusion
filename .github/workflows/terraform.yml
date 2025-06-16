@@ -58,15 +58,15 @@ jobs:
           terraform fmt -recursive
           terraform fmt -recursive -check
           # Define your folders, e.g., "infra/network" and "infra/apps"
-          if ! [ -n "$TF_FOLDER" ]; then
-            TERRAFORM_FOLDERS=(
-              "$TF_FOLDER"
-            )
-          else
+          if [ -z "$TF_FOLDER" ]; then
             TERRAFORM_FOLDERS=(
               "terraform-ecr"
               # "terraform-ecs"
               # add more folders as needed
+              )
+          else
+            TERRAFORM_FOLDERS=(
+              "$TF_FOLDER"
             )
           fi
           echo "${TERAFORM_FOLDERS[@]}"
