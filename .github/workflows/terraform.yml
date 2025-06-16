@@ -43,8 +43,12 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
+          
       - name: Initialize and apply Terraform in multiple folders
         run: |
+          # TF Lint
+          terraform fmt -recursive
+          terraform fmt -recursive -check
           # Define your folders, e.g., "infra/network" and "infra/apps"
           TERRAFORM_FOLDERS=(
             "terraform-ecr"

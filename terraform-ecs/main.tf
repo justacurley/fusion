@@ -29,7 +29,7 @@ resource "aws_ecs_cluster" "main" {
 resource "aws_security_group" "ecs_sg" {
   name        = "ecs-sg"
   description = "Allow inbound traffic"
-  vpc_id      = "default"  # Using default VPC
+  vpc_id      = "default" # Using default VPC
 
   ingress {
     from_port   = 0
@@ -76,8 +76,8 @@ resource "aws_ecs_service" "app" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = [data.aws_subnet.default.id]  # Replace with your subnet IDs
-    security_groups = [aws_security_group.ecs_sg.id]
+    subnets          = [data.aws_subnet.default.id] # Replace with your subnet IDs
+    security_groups  = [aws_security_group.ecs_sg.id]
     assign_public_ip = true
   }
 }
