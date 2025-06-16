@@ -1,6 +1,22 @@
 name: Terraform Deployment
 
 on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+      destroy:
+        description: 'destroy'
+        type: 'boolean'
+        required: false
+        default: false
+      migrate-state:
+        description: 'migrate state file during init'
+        type: 'boolean'
+        required: false
+        default: false
   push:
     branches:
       - dev
@@ -41,7 +57,11 @@ jobs:
             cd "$folder"
 
             # Initialize Terraform
-            terraform init -input=false
+            MIGRATE=''
+            if [ "${{ github.event.inputs.migrate-state }}" == "true" ]; then
+              MIGRATE='-migrate-state'
+            fi
+            terraform init -input=false $MIGRATE
 
             # Plan to review before apply (optional)
             terraform plan -out=tfplan -input=false
@@ -51,7 +71,7 @@ jobs:
               # Apply only if on main
               terraform apply -input=false -auto-approve tfplan
             fi
-            if [ "${{ github.ref }}" == "refs/heads/destroy" ]; then
+            if [ "${{ github.event.inputs.destroy }}" == "true" ]; then
               terraform destroy -auto-approve
             fi
             
