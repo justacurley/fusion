@@ -56,16 +56,9 @@ jobs:
           # Define your folders, e.g., "infra/network" and "infra/apps"
           TERRAFORM_FOLDERS=(
             "terraform-ecr"
-            "terraform-ecs"
+            # "terraform-ecs"
             # add more folders as needed
           )
-          if ! [ -n "${{ github.event.inputs.tf-folder }}" ]; then
-              TERRAFORM_FOLDERS=(
-                "${{ github.event.inputs.tf-folder }}"
-              )
-          fi
-          echo "${{ github.event.inputs.tf-folder }}"
-          echo $("{TERRAFORM_FOLDERS[@]}")
 
           for folder in "${TERRAFORM_FOLDERS[@]}"; do
             echo "Processing folder: $folder"
