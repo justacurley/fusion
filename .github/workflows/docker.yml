@@ -40,7 +40,7 @@ jobs:
 
       - name: Tag Docker Image for ECR
         run: |
-          docker tag $ECR_REPO_URI:$IMAGE_TAG $ECR_REPO_URI:${{ github.sha }}
+          docker tag $ECR_REPO_URI:latest $ECR_REPO_URI:${{ github.sha }}
 
       - name: Push Docker Image to ECR
         run: |
