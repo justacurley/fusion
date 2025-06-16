@@ -48,6 +48,7 @@ jobs:
           # Define your folders, e.g., "infra/network" and "infra/apps"
           TERRAFORM_FOLDERS=(
             "terraform-ecr"
+            "terraform-ecs"
             # add more folders as needed
           )
 
