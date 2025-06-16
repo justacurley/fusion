@@ -5,26 +5,48 @@ on:
 
 jobs:
   build-and-push:
+    environment: Production
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      # Allow write permissions for creating tags and pushing images
+      id-token: write
+    env:
+      TF_VERSION: 1.12.2
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      REPOSITORY: fusion
+      IMAGE_TAG: LATEST
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Log in to Amazon ECR
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}  # e.g., us-east-1
+
+      - name: Login to Amazon ECR
+        id: ecr-login
         uses: aws-actions/amazon-ecr-login@v1
 
-        with:
-          region: us-east-1  # Replace with your AWS region
-
-      - name: Build Docker image
+      - name: Build Docker Image
         run: |
-          IMAGE_TAG=LATEST
-          REPOSITORY_URI=YOUR_ECR_REPOSITORY_URI  # Replace with your ECR repository URI
-          docker build -t $REPOSITORY_URI:$IMAGE_TAG .
+          cd docker
+          docker build -t $IMAGE_TAG .
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Push Docker image to ECR
+      - name: Tag Docker Image for ECR
         run: |
-          IMAGE_TAG=LATEST
-          REPOSITORY_URI=YOUR_ECR_REPOSITORY_URI  # Replace with your ECR repository URI
-          docker push $REPOSITORY_URI:$IMAGE_TAG
+          ECR_URI=$(aws ecr describe-repositories --repository-names $REPOSITORY --region $AWS_REGION --output text --query 'repositories[0].repositoryUri')
+          docker tag $IMAGE_TAG $ECR_URI:$GITHUB_SHA
+
+      - name: Push Docker Image to ECR
+        run: |
+          ECR_URI=$(aws ecr describe-repositories --repository-names $REPOSITORY --region $AWS_REGION --output text --query 'repositories[0].repositoryUri')
+          docker push $ECR_URI:$GITHUB_SHA
