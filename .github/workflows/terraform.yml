@@ -1,6 +1,11 @@
 name: Terraform Deployment
 
 on:
+  push:
+    branches:
+      - dev
+      - main
+      - feature/*
   workflow_dispatch:
     inputs:
       environment:
@@ -17,11 +22,6 @@ on:
         type: 'boolean'
         required: false
         default: false
-  push:
-    branches:
-      - dev
-      - main
-      - feature/*
 
 jobs:
   terraform:
