@@ -34,7 +34,7 @@ jobs:
         id: build_image
         run: |
           cd docker  # Remove if Dockerfile is in root
-          IMAGE_TAG=${{ github.repository }}:${{ github.sha }}
+          IMAGE_TAG=${{ github.sha }}
           docker build -t $ECR_REPO_URI:$IMAGE_TAG .
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
