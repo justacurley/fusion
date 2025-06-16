@@ -73,8 +73,7 @@ jobs:
           terraform plan -out=tfplan -input=false
           
           # If on main branch, run apply
-          if [ "${{ git
-          hub.ref }}" == "refs/heads/main" ]; then
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             # Apply only if on main
             terraform apply -input=false -auto-approve tfplan
           fi
@@ -89,7 +88,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Trigger Docker Workflow
-      uses: .github/workflows/docker.yml
+      uses: ./.github/workflows/docker.yml
          
   deploy-ecs:
     needs: [check-ecr, deploy-ecr]
