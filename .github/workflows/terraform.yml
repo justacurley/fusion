@@ -29,6 +29,7 @@ on:
 
 jobs:
   check-ecr:
+    environment: Production
     runs-on: ubuntu-latest
     outputs:
       ecr_exists: ${{ steps.check-ecr.outputs.exists }}
@@ -38,7 +39,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-west-2
+        aws-region: ${{ vars.AWS_REGION }}
 
     - name: Check if ECR repository exists
       id: check-ecr
