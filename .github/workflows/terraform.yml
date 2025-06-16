@@ -28,7 +28,71 @@ on:
         default: false
 
 jobs:
-  terraform:
+  check-ecr:
+    runs-on: ubuntu-latest
+    outputs:
+      ecr_exists: ${{ steps.check-ecr.outputs.exists }}
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_REGION }}
+
+    - name: Check if ECR repository exists
+      id: check-ecr
+      run: |
+        if aws ecr describe-repositories --repository-names fusion > /dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+  deploy-ecr:
+    needs: check-ecr
+    environment: Production
+    runs-on: ubuntu-latest
+    if: needs.check-ecr.outputs.ecr_exists == 'false'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.12.2
+          
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform-ecr
+
+      - name: Terraform Apply
+        run: |
+          # Plan to review before apply (optional)
+          terraform plan -out=tfplan -input=false
+          
+          # If on main branch, run apply
+          if [ "${{ git
+          hub.ref }}" == "refs/heads/main" ]; then
+            # Apply only if on main
+            terraform apply -input=false -auto-approve tfplan
+          fi
+          if [ "$DESTROY" == "true" ]; then
+            terraform destroy -auto-approve
+          fi
+        working-directory: ./terraform-ecr
+
+  trigger-docker-workflow:
+    needs: [check-ecr, deploy-ecr]
+    if: needs.check-ecr.outputs.ecr_exists == 'false'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Trigger Docker Workflow
+      uses: .github/workflows/docker.yml
+         
+  deploy-ecs:
+    needs: [check-ecr, deploy-ecr]
     environment: Production
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'  # Optional, for clarity
@@ -46,54 +110,22 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TF_VERSION }}
-
           
-      - name: Initialize and apply Terraform in multiple folders
-        env:
-          TF_FOLDER: "${{ github.event.inputs.tf-folder }}"
-          MIGRATE_STATE: "${{ github.event.inputs.migrate-state }}"
-          DESTROY: "${{ github.event.inputs.destroy }}"
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform-ecr
+
+      - name: Terraform Apply
         run: |
-          # TF Lint
-          terraform fmt -recursive
-          terraform fmt -recursive -check
-          # Define your folders, e.g., "infra/network" and "infra/apps"
-          if [ -z "$TF_FOLDER" ]; then
-            TERRAFORM_FOLDERS=(
-              "terraform-ecr"
-              # "terraform-ecs"
-              # add more folders as needed
-              )
-          else
-            TERRAFORM_FOLDERS=(
-              "$TF_FOLDER"
-            )
+          # Plan to review before apply (optional)
+          terraform plan -out=tfplan -input=false
+          
+          # If on main branch, run apply
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            # Apply only if on main
+            terraform apply -input=false -auto-approve tfplan
           fi
-          echo "${TERAFORM_FOLDERS[@]}"
-
-          for folder in "${TERRAFORM_FOLDERS[@]}"; do
-            echo "Processing folder: $folder"
-
-            cd "$folder"
-
-            # Initialize Terraform
-            MIGRATE=''
-            if [ "$MIGRATE_STATE" == "true" ]; then
-              MIGRATE='-migrate-state'
-            fi
-            terraform init -input=false $MIGRATE
-
-            # Plan to review before apply (optional)
-            terraform plan -out=tfplan -input=false
-            
-            # If on main branch, run apply, else just validate
-            if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-              # Apply only if on main
-              terraform apply -input=false -auto-approve tfplan
-            fi
-            if [ "$DESTROY" == "true" ]; then
-              terraform destroy -auto-approve
-            fi
-            
-            cd -  # Return to root
-          done
+          if [ "$DESTROY" == "true" ]; then
+            terraform destroy -auto-approve
+          fi
+        working-directory: ./terraform-ecr
