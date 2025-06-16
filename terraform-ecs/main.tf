@@ -1,89 +1,85 @@
-# ECR Repository
-resource "aws_ecr_repository" "my_repo" {
+
+# # IAM Roles & Policies for ECS Task Execution
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "ecsTaskExecutionRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# ECS Cluster
+resource "aws_ecs_cluster" "main" {
   name = "fusion"
 }
 
-# # IAM Roles & Policies for ECS Task Execution
-# resource "aws_iam_role" "ecs_task_execution_role" {
-#   name = "ecsTaskExecutionRole"
+# Security Group allowing internet access
+resource "aws_security_group" "ecs_sg" {
+  name        = "ecs-sg"
+  description = "Allow inbound traffic"
+  vpc_id      = "default" # Using default VPC
 
-#   assume_role_policy = jsonencode({
-#     Version = "2012-10-17",
-#     Statement = [{
-#       Effect = "Allow",
-#       Principal = {
-#         Service = "ecs-tasks.amazonaws.com"
-#       }
-#       Action = "sts:AssumeRole"
-#     }]
-#   })
-# }
+  ingress {
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-# resource "aws_iam_role_policy_attachment" "ecs_task_exec_policy" {
-#   role       = aws_iam_role.ecs_task_execution_role.name
-#   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-# }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
 
-# # ECS Cluster
-# resource "aws_ecs_cluster" "main" {
-#   name = "fusion"
-# }
+# ECS Task Definition
+resource "aws_ecs_task_definition" "app" {
+  family                   = "my-application"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
 
-# # Security Group allowing internet access
-# resource "aws_security_group" "ecs_sg" {
-#   name        = "ecs-sg"
-#   description = "Allow inbound traffic"
-#   vpc_id      = "default"  # Using default VPC
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
 
-#   ingress {
-#     from_port   = 0
-#     to_port     = 65535
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
+  container_definitions = jsonencode([{
+    name      = "my-container"
+    image     = "${data.aws_ecr_repository.my_repo.repository_url}:latest"
+    essential = true
+    portMappings = [{
+      containerPort = 5000
+      hostPort      = 5000
+    }]
+  }])
+}
 
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-# }
+# ECS Service (to run the task)
+resource "aws_ecs_service" "app" {
+  name            = "fusion"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.app.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
 
-# # ECS Task Definition
-# resource "aws_ecs_task_definition" "app" {
-#   family                   = "my-application"
-#   network_mode             = "awsvpc"
-#   requires_compatibilities = ["FARGATE"]
-#   cpu                      = "256"
-#   memory                   = "512"
-
-#   execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
-
-#   container_definitions = jsonencode([{
-#     name      = "my-container"
-#     image     = "${aws_ecr_repository.my_repo.repository_url}:latest"
-#     essential = true
-#     portMappings = [{
-#       containerPort = 80
-#       hostPort      = 80
-#     }]
-#   }])
-# }
-
-# # ECS Service (to run the task)
-# resource "aws_ecs_service" "app" {
-#   name            = "my-ecs-service"
-#   cluster         = aws_ecs_cluster.main.id
-#   task_definition = aws_ecs_task_definition.app.arn
-#   desired_count   = 1
-#   launch_type     = "FARGATE"
-
-#   network_configuration {
-#     subnets         = ["subnet-xxxxx"]  # Replace with your subnet IDs
-#     security_groups = [aws_security_group.ecs_sg.id]
-#     assign_public_ip = true
-#   }
-# }
+  network_configuration {
+    subnets          = [data.aws_subnet.default.id] # Replace with your subnet IDs
+    security_groups  = [aws_security_group.ecs_sg.id]
+    assign_public_ip = true
+  }
+}
 
 # # Note: To deploy your container image, you'll build and push to ECR manually or via CLI script below.

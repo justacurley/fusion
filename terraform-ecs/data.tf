@@ -13,3 +13,7 @@ data "aws_subnet" "default" {
     values = ["us-west-2a"] # change as needed
   }
 }
+
+data "aws_ecr_repository" "my_repo" {
+  name = "fusion"
+}
