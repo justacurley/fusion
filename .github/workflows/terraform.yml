@@ -30,7 +30,7 @@ jobs:
         run: |
           # Define your folders, e.g., "infra/network" and "infra/apps"
           TERRAFORM_FOLDERS=(
-            "terraform-ecs"
+            "terraform-ecr"
             # add more folders as needed
           )
 
@@ -50,5 +50,9 @@ jobs:
               # Apply only if on main
               terraform apply -input=false -auto-approve tfplan
             fi
+            if [ "${{ github.ref }}" == "refs/heads/destroy" ]; then
+              terraform destroy -auto-approve
+            fi
+            
             cd -  # Return to root
           done
