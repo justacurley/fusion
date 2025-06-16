@@ -12,6 +12,10 @@ on:
         description: 'Environment to deploy to'
         required: true
         default: 'production'
+      tf-folder:
+        description: 'speocific folder to deploy. use in chicken/egg scenarios'
+        required: true
+        default: ''
       destroy:
         description: 'destroy'
         type: 'boolean'
@@ -55,6 +59,11 @@ jobs:
             "terraform-ecs"
             # add more folders as needed
           )
+          if ! [ -n "${{ github.event.inputs.tf-folder }}" ]; then
+              TERRAFORM_FOLDERS=(
+                "${{ github.event.inputs.tf-folder }}"
+              )
+          fi
 
           for folder in "${TERRAFORM_FOLDERS[@]}"; do
             echo "Processing folder: $folder"
