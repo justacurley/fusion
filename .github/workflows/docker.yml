@@ -5,26 +5,45 @@ on:
 
 jobs:
   build-and-push:
+    environment: Production
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      REPOSITORY: fusion
+      ECR_REPO_URI: 471230323408.dkr.ecr.us-west-2.amazonaws.com/fusion
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Log in to Amazon ECR
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
 
-        with:
-          region: us-east-1  # Replace with your AWS region
-
-      - name: Build Docker image
+      - name: Build Docker Image
+        id: build_image
         run: |
-          IMAGE_TAG=LATEST
-          REPOSITORY_URI=YOUR_ECR_REPOSITORY_URI  # Replace with your ECR repository URI
-          docker build -t $REPOSITORY_URI:$IMAGE_TAG .
+          cd docker  # Remove if Dockerfile is in root
+          IMAGE_TAG=${{ github.sha }}
+          docker build -t $ECR_REPO_URI:$IMAGE_TAG .
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Push Docker image to ECR
+      - name: Tag Docker Image for ECR
         run: |
-          IMAGE_TAG=LATEST
-          REPOSITORY_URI=YOUR_ECR_REPOSITORY_URI  # Replace with your ECR repository URI
-          docker push $REPOSITORY_URI:$IMAGE_TAG
+          docker tag $ECR_REPO_URI:${{ github.sha }}  $ECR_REPO_URI:latest
+
+      - name: Push Docker Image to ECR
+        run: |
+          docker push $ECR_REPO_URI:${{ github.sha }}
+          docker push $ECR_REPO_URI:latest
+
