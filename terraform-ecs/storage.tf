@@ -1,7 +1,9 @@
 resource "aws_efs_file_system" "ecs_persistence" {
   creation_token = "ecs-persistence"
   encrypted      = true
-
+  lifecycle {
+    prevent_destroy = true
+  }
   tags = {
     Name = "ECS Persistent Storage"
   }

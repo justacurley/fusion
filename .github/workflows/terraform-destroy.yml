@@ -1,0 +1,89 @@
+name: Terraform Deployment
+
+on:
+  workflow_call:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+
+jobs:
+  delete-ecr-repo:
+    environment: Production
+    runs-on: ubuntu-latest
+    outputs:
+      ecr_exists: ${{ steps.check-ecr.outputs.exists }}
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_REGION }}
+
+    - name: Check if ECR repository exists
+      id: check-ecr
+      run: |
+        if aws ecr describe-repositories --repository-names fusion > /dev/null 2>&1; then
+          echo "repo exists, deleting"
+          aws ecr delete-repository --repository-name fusion --force          
+        else
+          echo "repo does not exist"
+        fi
+  
+  destroy-ecr:
+    environment: Production
+    env:
+      TF_VERSION: 1.12.2
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    runs-on: ubuntu-latest
+    needs: [delete-ecr-repo]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform-ecr
+
+      - name: Terraform Destroy
+        run: |
+          terraform destroy -auto-approve
+
+        working-directory: ./terraform-ecr
+
+
+  deploy-ecs:
+    needs: [destroy-ecr]
+    environment: Production
+    runs-on: ubuntu-latest
+    env:
+      TF_VERSION: 1.12.2
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform-ecs
+
+      - name: Terraform Apply
+        run: |
+          terraform destroy -auto-approve
+        working-directory: ./terraform-ecs

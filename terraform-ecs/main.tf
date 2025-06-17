@@ -70,9 +70,9 @@ resource "aws_ecs_task_definition" "app" {
       hostPort      = 5000
     }]
     mountPoints = [{
-      sourceVolume = "efs-volume"
+      sourceVolume  = "efs-volume"
       containerPath = "/home/data"
-      readOnly = false
+      readOnly      = false
     }]
   }])
   volume {
