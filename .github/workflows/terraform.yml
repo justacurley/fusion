@@ -14,7 +14,7 @@ on:
         default: 'production'
       tf-folder:
         description: 'speocific folder to deploy. use in chicken/egg scenarios'
-        required: true
+        required: false
         default: ''
       destroy:
         description: 'destroy'
@@ -85,12 +85,11 @@ jobs:
           terraform plan -out=tfplan -input=false
           
           # If on main branch, run apply
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          if [ "${{ inputs.destroy }}" == "true" ]; then
+            terraform destroy -auto-approve
+          elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
             # Apply only if on main
             terraform apply -input=false -auto-approve tfplan
-          fi
-          if [ "$DESTROY" == "true" ]; then
-            terraform destroy -auto-approve
           fi
         working-directory: ./terraform-ecr
 
@@ -172,11 +171,10 @@ jobs:
           terraform plan -out=tfplan -input=false
           
           # If on main branch, run apply
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          if [ "${{ inputs.destroy }}" == "true" ]; then
+            terraform destroy -auto-approve
+          elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
             # Apply only if on main
             terraform apply -input=false -auto-approve tfplan
-          fi
-          if [ "$DESTROY" == "true" ]; then
-            terraform destroy -auto-approve
           fi
         working-directory: ./terraform-ecs

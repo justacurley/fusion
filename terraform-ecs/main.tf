@@ -19,6 +19,11 @@ resource "aws_iam_role_policy_attachment" "ecs_task_exec_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
+resource "aws_iam_role_policy_attachment" "ecs_task_exec_efs_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonElasticFileSystemClientFullAccess"
+}
+
 
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
@@ -29,13 +34,13 @@ resource "aws_ecs_cluster" "main" {
 resource "aws_security_group" "ecs_sg" {
   name        = "ecs-sg"
   description = "Allow inbound traffic"
-  vpc_id      = "default" # Using default VPC
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
-    from_port   = 0
-    to_port     = 65535
+    from_port   = 5000
+    to_port     = 5000
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["71.218.104.230/32"]
   }
 
   egress {
@@ -57,14 +62,26 @@ resource "aws_ecs_task_definition" "app" {
   execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([{
-    name      = "my-container"
+    name      = "PSUniversal"
     image     = "${data.aws_ecr_repository.my_repo.repository_url}:latest"
     essential = true
     portMappings = [{
       containerPort = 5000
       hostPort      = 5000
     }]
+    mountPoints = [{
+      sourceVolume  = "efs-volume"
+      containerPath = "/home/data"
+      readOnly      = false
+    }]
   }])
+  volume {
+    name = "efs-volume"
+    efs_volume_configuration {
+      file_system_id = aws_efs_file_system.ecs_persistence.id
+      root_directory = "/"
+    }
+  }
 }
 
 # ECS Service (to run the task)
