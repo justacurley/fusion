@@ -45,8 +45,10 @@ jobs:
       id: check-ecr
       run: |
         if aws ecr describe-repositories --repository-names fusion > /dev/null 2>&1; then
+          echo "repo exists"
           echo "exists=true" >> $GITHUB_OUTPUT
         else
+          echo "repo does not exist"
           echo "exists=false" >> $GITHUB_OUTPUT
         fi
         echo "$GITHUB_OUTPUT"
