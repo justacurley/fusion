@@ -94,6 +94,7 @@ jobs:
       needs: [check-ecr, deploy-ecr]
       if: needs.check-ecr.outputs.ecr_exists == 'false'
       uses: ./.github/workflows/docker.yml
+      secrets: inherit
       with: 
         destroy: false
          
