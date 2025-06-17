@@ -143,7 +143,7 @@ jobs:
           fi
          
   deploy-ecs:
-    needs: [deploy-ecr]
+    needs: [build-and-push-image]
     environment: Production
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'  # Optional, for clarity
