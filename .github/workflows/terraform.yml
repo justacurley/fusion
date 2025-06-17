@@ -97,6 +97,7 @@ jobs:
   build-and-push-image:
     environment: Production
     runs-on: ubuntu-latest
+    needs: [deploy-ecr]
     permissions:
       contents: read
       # id-token: write
