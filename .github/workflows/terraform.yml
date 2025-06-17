@@ -87,7 +87,7 @@ jobs:
           # If on main branch, run apply
           if [ "${{ inputs.destroy }}" == "true" ]; then
             terraform destroy -auto-approve
-          elseif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
+          elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
             # Apply only if on main
             terraform apply -input=false -auto-approve tfplan
           fi
@@ -173,7 +173,7 @@ jobs:
           # If on main branch, run apply
           if [ "${{ inputs.destroy }}" == "true" ]; then
             terraform destroy -auto-approve
-          elseif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
+          elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
             # Apply only if on main
             terraform apply -input=false -auto-approve tfplan
           fi
