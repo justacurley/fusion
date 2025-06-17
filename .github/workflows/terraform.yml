@@ -120,7 +120,7 @@ jobs:
           
       - name: Terraform Init
         run: terraform init
-        working-directory: ./terraform-ecr
+        working-directory: ./terraform-ecs
 
       - name: Terraform Apply
         run: |
@@ -135,4 +135,4 @@ jobs:
           if [ "$DESTROY" == "true" ]; then
             terraform destroy -auto-approve
           fi
-        working-directory: ./terraform-ecr
+        working-directory: ./terraform-ecs
