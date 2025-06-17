@@ -1,7 +1,14 @@
 name: Build and Push Docker Image to AWS ECR
 
 on:
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      destroy:
+        description: 'destroy'
+        type: 'boolean'
+        required: false
+        default: false
+    
 
 jobs:
   build-and-push:
@@ -9,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
+      # id-token: write
 
     env:
       AWS_REGION: ${{ vars.AWS_REGION }}
@@ -44,6 +51,8 @@ jobs:
 
       - name: Push Docker Image to ECR
         run: |
-          docker push $ECR_REPO_URI:${{ github.sha }}
-          docker push $ECR_REPO_URI:latest
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            docker push $ECR_REPO_URI:${{ github.sha }}
+            docker push $ECR_REPO_URI:latest
+          fi
 
