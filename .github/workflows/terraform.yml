@@ -14,7 +14,7 @@ on:
         default: 'production'
       tf-folder:
         description: 'speocific folder to deploy. use in chicken/egg scenarios'
-        required: true
+        required: false
         default: ''
       destroy:
         description: 'destroy'
