@@ -29,7 +29,7 @@ resource "aws_ecs_cluster" "main" {
 resource "aws_security_group" "ecs_sg" {
   name        = "ecs-sg"
   description = "Allow inbound traffic"
-  vpc_id      = "default" # Using default VPC
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     from_port   = 0
