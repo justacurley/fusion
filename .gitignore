@@ -5,7 +5,7 @@ workspace.ps1
 # .tfstate files
 *.tfstate
 *.tfstate.*
-
+img/*Zone.Identifier
 # Crash log files
 crash.log
 
