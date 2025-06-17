@@ -5,11 +5,11 @@ resource "aws_security_group" "rdp_sg" {
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
-    description      = "RDP from my IP"
-    from_port        = 3389
-    to_port          = 3389
-    protocol         = "tcp"
-    cidr_blocks      = ["71.218.104.230/32"]
+    description = "RDP from my IP"
+    from_port   = 3389
+    to_port     = 3389
+    protocol    = "tcp"
+    cidr_blocks = ["71.218.104.230/32"]
   }
 
   egress {
@@ -27,10 +27,10 @@ resource "aws_security_group" "rdp_sg" {
 
 # EC2 Windows Server instance with user data to install PowerShell 7
 resource "aws_instance" "windows_server" {
-  ami                         = data.aws_ami.windows.id
-  instance_type               = "t2.micro"
-  subnet_id                   = data.aws_subnet.default.id
-  security_groups         = [aws_security_group.rdp_sg.id]
+  ami             = data.aws_ami.windows.id
+  instance_type   = "t2.micro"
+  subnet_id       = data.aws_subnet.default.id
+  security_groups = [aws_security_group.rdp_sg.id]
 
   user_data = <<-EOF
     <powershell>
