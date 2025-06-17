@@ -1,4 +1,4 @@
-name: Terraform Deployment
+name: Terraform DESTROY
 
 on:
   workflow_call:
