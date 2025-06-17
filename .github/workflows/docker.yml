@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
+      # id-token: write
 
     env:
       AWS_REGION: ${{ vars.AWS_REGION }}
