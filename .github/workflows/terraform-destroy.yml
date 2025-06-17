@@ -2,12 +2,13 @@ name: Terraform DESTROY
 
 on:
   workflow_call:
-  workflow_dispatch:
     inputs:
       environment:
+        type: string
         description: 'Environment to deploy to'
         required: true
         default: 'production'
+
 
 jobs:
   delete-ecr-repo:
