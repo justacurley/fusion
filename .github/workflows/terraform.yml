@@ -52,15 +52,14 @@ jobs:
           echo "exists=false" >> $GITHUB_OUTPUT
         fi
         echo "$GITHUB_OUTPUT"
+  
   deploy-ecr:
-    needs: check-ecr
     environment: Production
     env:
       TF_VERSION: 1.12.2
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    runs-on: ubuntu-latest
-    if: needs.check-ecr.outputs.ecr_exists == 'false'
+    runs-on: ubuntu-latest'
 
     steps:
       - name: Checkout repository
@@ -91,7 +90,7 @@ jobs:
         working-directory: ./terraform-ecr
 
   call-docker-workflow:
-      needs: [check-ecr, deploy-ecr]
+      needs: [check-ecr]
       if: needs.check-ecr.outputs.ecr_exists == 'false'
       uses: ./.github/workflows/docker.yml
       secrets: inherit
@@ -99,7 +98,7 @@ jobs:
         destroy: false
          
   deploy-ecs:
-    needs: [check-ecr, deploy-ecr, call-docker-workflow]
+    needs: [deploy-ecr]
     environment: Production
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'  # Optional, for clarity
