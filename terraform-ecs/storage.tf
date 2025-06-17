@@ -9,7 +9,7 @@ resource "aws_efs_file_system" "ecs_persistence" {
 
 resource "aws_efs_mount_target" "ecs_persistence" {
   file_system_id  = aws_efs_file_system.ecs_persistence.id
-  subnet_id       = [data.aws_subnet.default.id]
+  subnet_id       = data.aws_subnet.default.id
   security_groups = [aws_security_group.efs_sg.id]
 }
 
