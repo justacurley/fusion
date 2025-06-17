@@ -71,7 +71,7 @@ resource "aws_ecs_task_definition" "app" {
     }]
     mountPoints = [{
       sourceVolume = "efs-volume"
-      containerPath = "/home/Universal/Storage"
+      containerPath = "/home/data"
       readOnly = false
     }]
   }])
