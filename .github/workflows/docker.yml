@@ -51,6 +51,8 @@ jobs:
 
       - name: Push Docker Image to ECR
         run: |
-          docker push $ECR_REPO_URI:${{ github.sha }}
-          docker push $ECR_REPO_URI:latest
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            docker push $ECR_REPO_URI:${{ github.sha }}
+            docker push $ECR_REPO_URI:latest
+          fi
 
