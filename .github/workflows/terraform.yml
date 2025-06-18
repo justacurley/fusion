@@ -38,7 +38,7 @@ jobs:
   deploy-ecs:
     uses: ./.github/workflows/deploy-tffolder.yml
     secrets: inherit
-    needs: [deploy-efs, deploy-ecr]
+    needs: [deploy-efs, deploy-ecr, build-and-push-image]
     with:
       tf-folder: './terraform-ecs'
 
