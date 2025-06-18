@@ -106,7 +106,7 @@ resource "aws_ecs_service" "app" {
   launch_type             = "FARGATE"
   enable_ecs_managed_tags = true
   propagate_tags          = "TASK_DEFINITION"
-  force_new_deployment    = true
+  # force_new_deployment    = true # Had to add this to get tag propogation to work.
   network_configuration {
     subnets          = [data.aws_subnet.default.id] # Replace with your subnet IDs
     security_groups  = [aws_security_group.ecs_sg.id]
