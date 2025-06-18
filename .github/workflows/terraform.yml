@@ -12,22 +12,8 @@ on:
         description: 'Environment to deploy to'
         required: true
         default: 'production'
-      tf-folder:
-        description: 'speocific folder to deploy. use in chicken/egg scenarios'
-        required: false
-        default: ''
-      destroy:
-        description: 'destroy'
-        type: 'boolean'
-        required: false
-        default: false
       build_image:
         description: 'build docker image on manual runs'
-        type: 'boolean'
-        required: false
-        default: false
-      migrate-state:
-        description: 'migrate state file during init'
         type: 'boolean'
         required: false
         default: false
@@ -98,7 +84,7 @@ jobs:
       - name: Build Docker Image
         id: build_image
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ inputs.build_image }}"" == "true" ]]; then
+          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ inputs.build_image }}" == "true" ]]; then
             cd docker  # Remove if Dockerfile is in root
             IMAGE_TAG=${{ github.sha }}
             docker build -t $ECR_REPO_URI:$IMAGE_TAG .
@@ -106,12 +92,12 @@ jobs:
           fi
       - name: Tag Docker Image for ECR
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ inputs.build_image }}"" == "true" ]]; then
+          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ inputs.build_image }}" == "true" ]]; then
             docker tag $ECR_REPO_URI:${{ github.sha }}  $ECR_REPO_URI:latest
           fi
       - name: Push Docker Image to ECR
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ inputs.build_image }}"" == "true" ]]; then
+          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ inputs.build_image }}" == "true" ]]; then
             docker push $ECR_REPO_URI:${{ github.sha }}
             docker push $ECR_REPO_URI:latest
           fi
