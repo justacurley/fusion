@@ -12,169 +12,105 @@ on:
         description: 'Environment to deploy to'
         required: true
         default: 'production'
-      tf-folder:
-        description: 'speocific folder to deploy. use in chicken/egg scenarios'
-        required: false
-        default: ''
-      destroy:
-        description: 'destroy'
-        type: 'boolean'
-        required: false
-        default: false
       build_image:
         description: 'build docker image on manual runs'
         type: 'boolean'
         required: false
         default: false
-      migrate-state:
-        description: 'migrate state file during init'
-        type: 'boolean'
-        required: false
-        default: false
+env:
+  TF_VERSION: 1.12.2
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
-  # check-ecr:
+  call-terraform-workflow:
+    uses: ./.github/workflows/deploy-tffolder.yml
+    secrets: inherit
+    with:
+      tf-folder: 'terraform/production'
+
+  # build-and-push-image:
   #   environment: Production
   #   runs-on: ubuntu-latest
-  #   outputs:
-  #     ecr_exists: ${{ steps.check-ecr.outputs.exists }}
+  #   needs: [deploy-ecr]
+  #   permissions:
+  #     contents: read
+  #     # id-token: write
+
+  #   env:
+  #     AWS_REGION: ${{ vars.AWS_REGION }}
+  #     REPOSITORY: fusion
+  #     ECR_REPO_URI: 471230323408.dkr.ecr.us-west-2.amazonaws.com/fusion
+
   #   steps:
-  #   - name: Configure AWS credentials
-  #     uses: aws-actions/configure-aws-credentials@v1
-  #     with:
-  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #       aws-region: ${{ vars.AWS_REGION }}
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
 
-  #   - name: Check if ECR repository exists
-  #     id: check-ecr
-  #     run: |
-  #       if aws ecr describe-repositories --repository-names fusion > /dev/null 2>&1; then
-  #         echo "repo exists"
-  #         echo "exists=true" >> $GITHUB_OUTPUT
-  #       else
-  #         echo "repo does not exist"
-  #         echo "exists=false" >> $GITHUB_OUTPUT
-  #       fi
-  #       echo "$GITHUB_OUTPUT"
-  
-  deploy-ecr:
-    environment: Production
-    env:
-      TF_VERSION: 1.12.2
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    runs-on: ubuntu-latest
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v2
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ env.AWS_REGION }}
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+  #     - name: Login to Amazon ECR
+  #       uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-          
-      - name: Terraform Init
-        run: terraform init
-        working-directory: ./terraform-ecr
-
-      - name: Terraform Apply
-        run: |
-          # Plan to review before apply (optional)
-          terraform plan -out=tfplan -input=false
-          
-          # If on main branch, run apply
-          if [ "${{ inputs.destroy }}" == "true" ]; then
-            terraform destroy -auto-approve
-          elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
-            # Apply only if on main
-            terraform apply -input=false -auto-approve tfplan
-          fi
-        working-directory: ./terraform-ecr
-
-  build-and-push-image:
-    environment: Production
-    runs-on: ubuntu-latest
-    needs: [deploy-ecr]
-    permissions:
-      contents: read
-      # id-token: write
-
-    env:
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      REPOSITORY: fusion
-      ECR_REPO_URI: 471230323408.dkr.ecr.us-west-2.amazonaws.com/fusion
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build Docker Image
-        id: build_image
-        run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            cd docker  # Remove if Dockerfile is in root
-            IMAGE_TAG=${{ github.sha }}
-            docker build -t $ECR_REPO_URI:$IMAGE_TAG .
-            echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
-          fi
-      - name: Tag Docker Image for ECR
-        run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            docker tag $ECR_REPO_URI:${{ github.sha }}  $ECR_REPO_URI:latest
-          fi
-      - name: Push Docker Image to ECR
-        run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            docker push $ECR_REPO_URI:${{ github.sha }}
-            docker push $ECR_REPO_URI:latest
-          fi
+  #     - name: Build Docker Image
+  #       id: build_image
+  #       run: |
+  #         if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ inputs.build_image }}" == "true" ]]; then
+  #           cd docker  # Remove if Dockerfile is in root
+  #           IMAGE_TAG=${{ github.sha }}
+  #           docker build -t $ECR_REPO_URI:$IMAGE_TAG .
+  #           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+  #         fi
+  #     - name: Tag Docker Image for ECR
+  #       run: |
+  #         if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ inputs.build_image }}" == "true" ]]; then
+  #           docker tag $ECR_REPO_URI:${{ github.sha }}  $ECR_REPO_URI:latest
+  #         fi
+  #     - name: Push Docker Image to ECR
+  #       run: |
+  #         if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ inputs.build_image }}" == "true" ]]; then
+  #           docker push $ECR_REPO_URI:${{ github.sha }}
+  #           docker push $ECR_REPO_URI:latest
+  #         fi
          
-  deploy-ecs:
-    needs: [build-and-push-image]
-    environment: Production
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'  # Optional, for clarity
+  # deploy-ecs:
+  #   needs: [build-and-push-image]
+  #   environment: Production
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'  # Optional, for clarity
 
-    env:
-      TF_VERSION: 1.12.2
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
+  #   env:
+  #     TF_VERSION: 1.12.2
+  #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
+  #     - name: Set up Terraform
+  #       uses: hashicorp/setup-terraform@v2
+  #       with:
+  #         terraform_version: ${{ env.TF_VERSION }}
           
-      - name: Terraform Init
-        run: terraform init
-        working-directory: ./terraform-ecs
+  #     - name: Terraform Init
+  #       run: terraform init
+  #       working-directory: ./terraform-ecs
 
-      - name: Terraform Apply
-        run: |
-          # Plan to review before apply (optional)
-          terraform plan -out=tfplan -input=false
+  #     - name: Terraform Apply
+  #       run: |
+  #         # Plan to review before apply (optional)
+  #         terraform plan -out=tfplan -input=false
           
-          # If on main branch, run apply
-          if [ "${{ inputs.destroy }}" == "true" ]; then
-            terraform destroy -auto-approve
-          elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
-            # Apply only if on main
-            terraform apply -input=false -auto-approve tfplan
-          fi
-        working-directory: ./terraform-ecs
+  #         # If on main branch, run apply
+  #         if [ "${{ inputs.destroy }}" == "true" ]; then
+  #           terraform destroy -auto-approve
+  #         elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
+  #           # Apply only if on main
+  #           terraform apply -input=false -auto-approve tfplan
+  #         fi
+  #       working-directory: ./terraform-ecs

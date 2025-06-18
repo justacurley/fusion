@@ -17,3 +17,9 @@ data "aws_subnet" "default" {
 data "aws_ecr_repository" "my_repo" {
   name = "fusion"
 }
+
+data "aws_efs_file_system" "psu" {
+  tags = {
+    Name = "PSU persistent storage"
+  }
+}

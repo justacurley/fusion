@@ -1,16 +1,5 @@
-resource "aws_efs_file_system" "ecs_persistence" {
-  creation_token = "ecs-persistence"
-  encrypted      = true
-  lifecycle {
-    prevent_destroy = true
-  }
-  tags = {
-    Name = "ECS Persistent Storage"
-  }
-}
-
 resource "aws_efs_mount_target" "ecs_persistence" {
-  file_system_id  = aws_efs_file_system.ecs_persistence.id
+  file_system_id  = data.aws_efs_file_system.psu
   subnet_id       = data.aws_subnet.default.id
   security_groups = [aws_security_group.efs_sg.id]
 }
