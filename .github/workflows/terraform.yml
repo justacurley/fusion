@@ -27,7 +27,7 @@ jobs:
     uses: ./.github/workflows/deploy-tffolder.yml
     secrets: inherit
     with:
-      tf-folder: 'terraform/production'
+      tf-folder: './terraform-ecr'
 
   # build-and-push-image:
   #   environment: Production
