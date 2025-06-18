@@ -33,31 +33,6 @@ on:
         default: false
 
 jobs:
-  # check-ecr:
-  #   environment: Production
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     ecr_exists: ${{ steps.check-ecr.outputs.exists }}
-  #   steps:
-  #   - name: Configure AWS credentials
-  #     uses: aws-actions/configure-aws-credentials@v1
-  #     with:
-  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #       aws-region: ${{ vars.AWS_REGION }}
-
-  #   - name: Check if ECR repository exists
-  #     id: check-ecr
-  #     run: |
-  #       if aws ecr describe-repositories --repository-names fusion > /dev/null 2>&1; then
-  #         echo "repo exists"
-  #         echo "exists=true" >> $GITHUB_OUTPUT
-  #       else
-  #         echo "repo does not exist"
-  #         echo "exists=false" >> $GITHUB_OUTPUT
-  #       fi
-  #       echo "$GITHUB_OUTPUT"
-  
   deploy-ecr:
     environment: Production
     env:
@@ -123,7 +98,7 @@ jobs:
       - name: Build Docker Image
         id: build_image
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ inputs.build_image }}"" == "true" ]]; then
             cd docker  # Remove if Dockerfile is in root
             IMAGE_TAG=${{ github.sha }}
             docker build -t $ECR_REPO_URI:$IMAGE_TAG .
@@ -131,12 +106,12 @@ jobs:
           fi
       - name: Tag Docker Image for ECR
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ inputs.build_image }}"" == "true" ]]; then
             docker tag $ECR_REPO_URI:${{ github.sha }}  $ECR_REPO_URI:latest
           fi
       - name: Push Docker Image to ECR
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ inputs.build_image }}"" == "true" ]]; then
             docker push $ECR_REPO_URI:${{ github.sha }}
             docker push $ECR_REPO_URI:latest
           fi
