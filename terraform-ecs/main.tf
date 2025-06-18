@@ -51,14 +51,19 @@ resource "aws_security_group" "ecs_sg" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "ecs_logs" {
+  name              = "/ecs/fusion"
+  retention_in_days = 30
+}
+
 # ECS Task Definition
 resource "aws_ecs_task_definition" "app" {
   family                   = "my-application"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
 
-  cpu                      = "2048"
-  memory                   = "4096"
+  cpu    = "2048"
+  memory = "4096"
 
   execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
 
@@ -75,6 +80,13 @@ resource "aws_ecs_task_definition" "app" {
       containerPath = "/home/data"
       readOnly      = false
     }]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        awslogs-group         = aws_cloudwatch_log_group.ecs_logs.name
+        awslogs-region        = "us-west-2"
+        awslogs-stream-prefix = "fusion"
+    } }
   }])
   volume {
     name = "efs-volume"

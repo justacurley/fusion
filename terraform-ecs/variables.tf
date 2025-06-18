@@ -1,4 +1,4 @@
 variable "my_pip" {
-  type = string
+  type    = string
   default = "71.218.104.230"
 }
