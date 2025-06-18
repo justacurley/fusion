@@ -99,12 +99,13 @@ resource "aws_ecs_task_definition" "app" {
 
 # ECS Service (to run the task)
 resource "aws_ecs_service" "app" {
-  name            = "fusion"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.app.arn
-  desired_count   = 1
-  launch_type     = "FARGATE"
+  name                    = "fusion"
+  cluster                 = aws_ecs_cluster.main.id
+  task_definition         = aws_ecs_task_definition.app.arn
+  desired_count           = 1
+  launch_type             = "FARGATE"
   enable_ecs_managed_tags = true
+  propagate_tags          = true
   network_configuration {
     subnets          = [data.aws_subnet.default.id] # Replace with your subnet IDs
     security_groups  = [aws_security_group.ecs_sg.id]
