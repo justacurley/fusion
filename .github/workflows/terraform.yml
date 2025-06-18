@@ -23,11 +23,17 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
-  call-terraform-workflow:
+  deploy-ecr:
     uses: ./.github/workflows/deploy-tffolder.yml
     secrets: inherit
     with:
       tf-folder: './terraform-ecr'
+
+  deploy-efs:
+    uses: ./.github/workflows/deploy-tffolder.yml
+    secrets: inherit
+    with:
+      tf-folder: './terraform-efs'
 
   # build-and-push-image:
   #   environment: Production
@@ -77,40 +83,3 @@ jobs:
   #           docker push $ECR_REPO_URI:latest
   #         fi
          
-  # deploy-ecs:
-  #   needs: [build-and-push-image]
-  #   environment: Production
-  #   runs-on: ubuntu-latest
-  #   if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'  # Optional, for clarity
-
-  #   env:
-  #     TF_VERSION: 1.12.2
-  #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
-
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v3
-
-  #     - name: Set up Terraform
-  #       uses: hashicorp/setup-terraform@v2
-  #       with:
-  #         terraform_version: ${{ env.TF_VERSION }}
-          
-  #     - name: Terraform Init
-  #       run: terraform init
-  #       working-directory: ./terraform-ecs
-
-  #     - name: Terraform Apply
-  #       run: |
-  #         # Plan to review before apply (optional)
-  #         terraform plan -out=tfplan -input=false
-          
-  #         # If on main branch, run apply
-  #         if [ "${{ inputs.destroy }}" == "true" ]; then
-  #           terraform destroy -auto-approve
-  #         elif [ "${{ github.ref }}" == "refs/heads/dev" ]; then
-  #           # Apply only if on main
-  #           terraform apply -input=false -auto-approve tfplan
-  #         fi
-  #       working-directory: ./terraform-ecs
