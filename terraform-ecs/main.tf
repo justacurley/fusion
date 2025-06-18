@@ -105,7 +105,7 @@ resource "aws_ecs_service" "app" {
   desired_count           = 1
   launch_type             = "FARGATE"
   enable_ecs_managed_tags = true
-  propagate_tags          = true
+  propagate_tags          = aws_ecs_task_definition.app
   network_configuration {
     subnets          = [data.aws_subnet.default.id] # Replace with your subnet IDs
     security_groups  = [aws_security_group.ecs_sg.id]
