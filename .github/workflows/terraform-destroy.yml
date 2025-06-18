@@ -32,7 +32,7 @@ jobs:
         run: terraform init
         working-directory: ./terraform-ecs
 
-      - name: Terraform Apply
+      - name: Terraform Destroy
         run: |
           terraform destroy -auto-approve
         working-directory: ./terraform-ecs
