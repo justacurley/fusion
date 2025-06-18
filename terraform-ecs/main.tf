@@ -40,7 +40,7 @@ resource "aws_security_group" "ecs_sg" {
     from_port   = 5000
     to_port     = 5000
     protocol    = "tcp"
-    cidr_blocks = ["71.218.104.230/32"]
+    cidr_blocks = ["${var.my_pip}/32"]
   }
 
   egress {
@@ -56,8 +56,9 @@ resource "aws_ecs_task_definition" "app" {
   family                   = "my-application"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256"
-  memory                   = "512"
+
+  cpu                      = "2048"
+  memory                   = "4096"
 
   execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
 
