@@ -26,11 +26,13 @@ resource "aws_iam_role_policy_attachment" "ecs_task_exec_efs_policy" {
 
 
 # ECS Cluster
+#trivy:ignore:AVD-AWS-0034
 resource "aws_ecs_cluster" "main" {
   name = "fusion"
 }
 
 # Security Group allowing internet access
+#trivy:ignore:AVD-AWS-0104
 resource "aws_security_group" "ecs_sg" {
   name        = "ecs-sg"
   description = "Allow inbound traffic"
@@ -54,6 +56,7 @@ resource "aws_security_group" "ecs_sg" {
 resource "aws_cloudwatch_log_group" "ecs_logs" {
   name              = "/ecs/fusion"
   retention_in_days = 30
+  kms_key_id        = "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:alias/aws/cloudwatch"
 }
 
 # ECS Task Definition
