@@ -32,7 +32,7 @@ jobs:
         run: terraform init
         working-directory: ./terraform-ecs
 
-      - name: Terraform Apply
+      - name: Terraform Destroy
         run: |
           terraform destroy -auto-approve
         working-directory: ./terraform-ecs
@@ -40,7 +40,7 @@ jobs:
   delete-ecr-repo:
     environment: Production
     runs-on: ubuntu-latest
-
+    needs: [destroy-ecs]
     steps:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -52,12 +52,30 @@ jobs:
     - name: Check if ECR repository exists
       id: check-ecr
       run: |
-        if aws ecr describe-repositories --repository-names fusion > /dev/null 2>&1; then
-          echo "repo exists, deleting"
-          aws ecr batch-delete-image --repository-name fusion --image-ids $(aws ecr list-images --repository-name fusion --query 'imageIds[*]' --output json)          
+        REPOSITORY_NAME=fusion
+        AWS_REGION=us-west-2
+        # Check if the repository exists
+        if aws ecr describe-repositories --repository-names "$REPOSITORY_NAME" --region "$AWS_REGION" >/dev/null 2>&1; then
+            echo "Repository $REPOSITORY_NAME exists."
+
+            # Get the list of image digests
+            IMAGE_DIGESTS=$(aws ecr list-images --repository-name "$REPOSITORY_NAME" --region "$AWS_REGION" --query 'imageIds[*].imageDigest' --output text)
+
+            # Check if there are any images
+            if [ -n "$IMAGE_DIGESTS" ]; then
+                echo "Images found in the repository. Deleting..."
+
+                # Delete all images in the repository
+                aws ecr batch-delete-image --repository-name "$REPOSITORY_NAME" --region "$AWS_REGION" --image-ids "$(aws ecr list-images --repository-name "$REPOSITORY_NAME" --region "$AWS_REGION" --query 'imageIds[*]' --output json)"
+
+                echo "All images in the repository have been deleted."
+            else
+                echo "No images found in the repository."
+            fi
         else
-          echo "repo does not exist"
+            echo "Repository $REPOSITORY_NAME does not exist."
         fi
+
   
   destroy-ecr:
     environment: Production

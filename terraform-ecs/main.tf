@@ -78,7 +78,7 @@ resource "aws_ecs_task_definition" "app" {
   volume {
     name = "efs-volume"
     efs_volume_configuration {
-      file_system_id = aws_efs_file_system.ecs_persistence.id
+      file_system_id = data.aws_efs_file_system.psu.id
       root_directory = "/"
     }
   }

@@ -1,7 +1,7 @@
 #WSL
 img/*Zone.Identifier
 
-workspace.ps1
+workspace.*
 # Local .terraform directories
 **/.terraform/*
 
