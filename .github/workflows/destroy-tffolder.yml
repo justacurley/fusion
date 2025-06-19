@@ -1,0 +1,35 @@
+name: Destroy terraform from specified folder
+
+on:
+  workflow_call:
+    inputs:
+      tf-folder:
+        required: true
+        type: string
+        description: 'The folder containing Terraform configurations'
+
+jobs:
+    destroy-terraform:
+        environment: Production
+        env:
+            TF_VERSION: 1.12.2
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v3
+
+          - name: Set up Terraform
+            uses: hashicorp/setup-terraform@v2
+            with:
+                terraform_version: ${{ env.TF_VERSION }}
+          
+          - name: Terraform Init
+            run: terraform init
+            working-directory: ${{ inputs.tf-folder }}
+
+          - name: Terraform Apply
+            run: |
+                terraform destroy -auto-approves
+            working-directory: ${{ inputs.tf-folder }}
