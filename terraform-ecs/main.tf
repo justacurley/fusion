@@ -19,12 +19,37 @@ resource "aws_iam_role_policy_attachment" "ecs_task_exec_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
+resource "aws_iam_role_policy_attachment" "ecs_task_interactive_shell_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
 resource "aws_iam_role_policy_attachment" "ecs_task_exec_efs_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonElasticFileSystemClientFullAccess"
 }
+resource "aws_iam_policy" "efs_access_policy" {
+  name        = "EFSAccessPolicy"
+  description = "Allow ECS tasks to mount and write to EFS"
 
-
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "elasticfilesystem:ClientMount",
+          "elasticfilesystem:ClientWrite"
+        ],
+        Resource = data.aws_efs_file_system.psu.arn
+      }
+    ]
+  })
+}
+resource "aws_iam_policy_attachment" "attach_efs_policy" {
+  name       = "attach-efs-policy"
+  roles      = [aws_iam_role.ecs_task_execution_role.name]
+  policy_arn = aws_iam_policy.efs_access_policy.arn
+}
 # ECS Cluster
 #trivy:ignore:AVD-AWS-0034
 resource "aws_ecs_cluster" "main" {
@@ -68,7 +93,7 @@ resource "aws_ecs_task_definition" "app" {
   memory = "4096"
 
   execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
-
+  task_role_arn      = aws_iam_role.ecs_task_execution_role.arn
   container_definitions = jsonencode([{
     name      = "PSUniversal"
     image     = "${data.aws_ecr_repository.my_repo.repository_url}:latest"
@@ -99,6 +124,7 @@ resource "aws_ecs_task_definition" "app" {
   }
 }
 
+
 # ECS Service (to run the task)
 resource "aws_ecs_service" "app" {
   name                    = "fusion"
@@ -107,8 +133,10 @@ resource "aws_ecs_service" "app" {
   desired_count           = 1
   launch_type             = "FARGATE"
   enable_ecs_managed_tags = true
-  propagate_tags          = "TASK_DEFINITION"
-  force_new_deployment    = true # Had to add this to get tag propogation to work.
+  enable_execute_command  = true
+
+  propagate_tags       = "TASK_DEFINITION"
+  force_new_deployment = true # Had to add this to get tag propogation to work.
   network_configuration {
     subnets          = [data.aws_subnet.default.id] # Replace with your subnet IDs
     security_groups  = [aws_security_group.ecs_sg.id]
