@@ -56,7 +56,6 @@ resource "aws_security_group" "ecs_sg" {
 resource "aws_cloudwatch_log_group" "ecs_logs" {
   name              = "/ecs/fusion"
   retention_in_days = 30
-  kms_key_id        = "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:alias/aws/cloudwatch"
 }
 
 # ECS Task Definition
