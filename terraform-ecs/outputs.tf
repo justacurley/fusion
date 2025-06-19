@@ -6,6 +6,6 @@ data "aws_network_interface" "interface_tags" {
   depends_on = [aws_ecs_service.app]
 }
 
-output "task_public_ip" {
-  value = data.aws_network_interface.interface_tags.association[0].public_ip
+output "task_public_uri" {
+  value = "https://${data.aws_network_interface.interface_tags.association[0].public_ip}:5000"
 }
