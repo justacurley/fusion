@@ -7,5 +7,5 @@ data "aws_network_interface" "interface_tags" {
 }
 
 output "task_public_uri" {
-  value = "https://${data.aws_network_interface.interface_tags.association[0].public_ip}:5000"
+  value = "http://${data.aws_network_interface.interface_tags.association[0].public_ip}:5000"
 }
