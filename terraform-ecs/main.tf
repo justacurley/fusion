@@ -71,8 +71,8 @@ resource "aws_ecs_task_definition" "app" {
   cpu    = "2048"
   memory = "4096"
 
-  execution_role_arn     = aws_iam_role.ecs_task_execution_role.arn
-  enable_execute_command = true
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+
   container_definitions = jsonencode([{
     name      = "PSUniversal"
     image     = "${data.aws_ecr_repository.my_repo.repository_url}:latest"
@@ -111,6 +111,7 @@ resource "aws_ecs_service" "app" {
   desired_count           = 1
   launch_type             = "FARGATE"
   enable_ecs_managed_tags = true
+  enable_execute_command  = true
   propagate_tags          = "TASK_DEFINITION"
   force_new_deployment    = true # Had to add this to get tag propogation to work.
   network_configuration {
