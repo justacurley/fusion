@@ -71,8 +71,8 @@ resource "aws_ecs_task_definition" "app" {
   cpu    = "2048"
   memory = "4096"
 
-  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
-
+  execution_role_arn     = aws_iam_role.ecs_task_execution_role.arn
+  enable_execute_command = true
   container_definitions = jsonencode([{
     name      = "PSUniversal"
     image     = "${data.aws_ecr_repository.my_repo.repository_url}:latest"
