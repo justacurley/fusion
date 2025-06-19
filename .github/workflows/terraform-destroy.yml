@@ -3,39 +3,22 @@ name: Terraform DESTROY
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        type: string
-        description: 'Environment to deploy to'
+      tf-folder:
         required: true
-        default: 'production'
+        type: string
+        description: 'The folder containing Terraform configurations'
 
+env:
+  TF_VERSION: 1.12.2
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
 
 jobs:
   destroy-ecs:
-    environment: Production
-    runs-on: ubuntu-latest
-    env:
-      TF_VERSION: 1.12.2
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-          
-      - name: Terraform Init
-        run: terraform init
-        working-directory: ./terraform-ecs
-
-      - name: Terraform Destroy
-        run: |
-          terraform destroy -auto-approve
-        working-directory: ./terraform-ecs
+    uses: ./.github/workflows/destroy-tffolder.yml
+    secrets: inherit
+    with:
+      tf-folder: './terraform-ecs'
 
   delete-ecr-repo:
     environment: Production
@@ -76,32 +59,18 @@ jobs:
             echo "Repository $REPOSITORY_NAME does not exist."
         fi
 
-  
   destroy-ecr:
-    environment: Production
-    env:
-      TF_VERSION: 1.12.2
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    runs-on: ubuntu-latest
-    needs: [delete-ecr-repo, destroy-ecs]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    uses: ./.github/workflows/destroy-tffolder.yml
+    secrets: inherit
+    needs: [delete-ecr-repo]
+    with:
+      tf-folder: './terraform-ecr'  
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-          
-      - name: Terraform Init
-        run: terraform init
-        working-directory: ./terraform-ecr
-
-      - name: Terraform Destroy
-        run: |
-          terraform destroy -auto-approve
-
-        working-directory: ./terraform-ecr
+  destroy-ddb:
+    uses: ./.github/workflows/destroy-tffolder.yml
+    secrets: inherit
+    needs: [delete-ecr-repo]
+    with:
+      tf-folder: './terraform-ddb'  
 
 
