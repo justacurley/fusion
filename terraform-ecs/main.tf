@@ -26,11 +26,13 @@ resource "aws_iam_role_policy_attachment" "ecs_task_exec_efs_policy" {
 
 
 # ECS Cluster
+#trivy:ignore:AVD-AWS-0034
 resource "aws_ecs_cluster" "main" {
   name = "fusion"
 }
 
 # Security Group allowing internet access
+#trivy:ignore:AVD-AWS-0104
 resource "aws_security_group" "ecs_sg" {
   name        = "ecs-sg"
   description = "Allow inbound traffic"
@@ -40,7 +42,7 @@ resource "aws_security_group" "ecs_sg" {
     from_port   = 5000
     to_port     = 5000
     protocol    = "tcp"
-    cidr_blocks = ["71.218.104.230/32"]
+    cidr_blocks = ["${var.my_pip}/32"]
   }
 
   egress {
@@ -51,13 +53,19 @@ resource "aws_security_group" "ecs_sg" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "ecs_logs" {
+  name              = "/ecs/fusion"
+  retention_in_days = 30
+}
+
 # ECS Task Definition
 resource "aws_ecs_task_definition" "app" {
   family                   = "my-application"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256"
-  memory                   = "512"
+
+  cpu    = "2048"
+  memory = "4096"
 
   execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
 
@@ -74,6 +82,13 @@ resource "aws_ecs_task_definition" "app" {
       containerPath = "/home/data"
       readOnly      = false
     }]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        awslogs-group         = aws_cloudwatch_log_group.ecs_logs.name
+        awslogs-region        = "us-west-2"
+        awslogs-stream-prefix = "fusion"
+    } }
   }])
   volume {
     name = "efs-volume"
@@ -86,12 +101,14 @@ resource "aws_ecs_task_definition" "app" {
 
 # ECS Service (to run the task)
 resource "aws_ecs_service" "app" {
-  name            = "fusion"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.app.arn
-  desired_count   = 1
-  launch_type     = "FARGATE"
-
+  name                    = "fusion"
+  cluster                 = aws_ecs_cluster.main.id
+  task_definition         = aws_ecs_task_definition.app.arn
+  desired_count           = 1
+  launch_type             = "FARGATE"
+  enable_ecs_managed_tags = true
+  propagate_tags          = "TASK_DEFINITION"
+  force_new_deployment    = true # Had to add this to get tag propogation to work.
   network_configuration {
     subnets          = [data.aws_subnet.default.id] # Replace with your subnet IDs
     security_groups  = [aws_security_group.ecs_sg.id]

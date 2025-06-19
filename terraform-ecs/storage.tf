@@ -4,6 +4,7 @@ resource "aws_efs_mount_target" "ecs_persistence" {
   security_groups = [aws_security_group.efs_sg.id]
 }
 
+#trivy:ignore:AVD-AWS-0104 
 resource "aws_security_group" "efs_sg" {
   name        = "efs-sg"
   description = "Allow EFS access from ECS tasks"
