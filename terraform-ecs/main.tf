@@ -47,7 +47,7 @@ resource "aws_iam_policy" "efs_access_policy" {
 }
 resource "aws_iam_policy_attachment" "attach_efs_policy" {
   name       = "attach-efs-policy"
-  roles      = [aws_iam_rols.ecs_task_execution_role.name]
+  roles      = [aws_iam_role.ecs_task_execution_role.name]
   policy_arn = aws_iam_policy.efs_access_policy.arn
 }
 # ECS Cluster
