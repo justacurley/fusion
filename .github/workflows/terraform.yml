@@ -1,11 +1,6 @@
 name: Terraform Deployment
 
 on:
-  push:
-    branches:
-      - dev
-      - main
-      - feature/*
   workflow_dispatch:
     inputs:
       environment:
