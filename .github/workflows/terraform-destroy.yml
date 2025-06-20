@@ -2,11 +2,6 @@ name: Terraform DESTROY
 
 on:
   workflow_dispatch:
-    inputs:
-      tf-folder:
-        required: true
-        type: string
-        description: 'The folder containing Terraform configurations'
 
 env:
   TF_VERSION: 1.12.2
