@@ -3,6 +3,11 @@ data "aws_network_interface" "interface_tags" {
     name   = "tag:aws:ecs:serviceName"
     values = ["fusion"]
   }
+  # Create filter for the eni description
+  filter {
+    name   = "description"
+    values = ["arn:aws:ecs*"]
+  }
   depends_on = [aws_ecs_service.app]
 }
 output "nics" {
