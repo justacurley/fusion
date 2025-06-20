@@ -31,5 +31,5 @@ jobs:
 
           - name: Terraform Apply
             run: |
-                terraform destroy -auto-approves
+                terraform destroy -auto-approve
             working-directory: ${{ inputs.tf-folder }}
