@@ -8,7 +8,7 @@ data "aws_network_interface" "interface_tags" {
     name   = "description"
     values = ["arn:aws:ecs*"]
   }
-  depends_on = [aws_ecs_service.app]
+  depends_on = [aws_ecs_service.app, aws_efs_mount_target.ecs_persistence]
 }
 
 output "task_public_uri" {
