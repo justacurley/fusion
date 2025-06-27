@@ -1,23 +1,22 @@
 
-
 # ECS Cluster
 #trivy:ignore:AVD-AWS-0034
 resource "aws_ecs_cluster" "main" {
   name = "fusion"
 }
 
-# Security Group allowing internet access
+# Security Group allowing traffic from ALB
 #trivy:ignore:AVD-AWS-0104
 resource "aws_security_group" "ecs_sg" {
   name        = "ecs-sg"
-  description = "Allow inbound traffic"
+  description = "Allow inbound traffic from ALB"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
-    from_port   = 5000
-    to_port     = 5000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port       = 5000
+    to_port         = 5000
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
   }
 
   egress {
@@ -87,11 +86,20 @@ resource "aws_ecs_service" "app" {
 
   propagate_tags       = "TASK_DEFINITION"
   force_new_deployment = true # Had to add this to get tag propogation to work.
+
   network_configuration {
-    subnets          = [data.aws_subnet.default.id] # Replace with your subnet IDs
+    subnets          = [data.aws_subnet.default.id]
     security_groups  = [aws_security_group.ecs_sg.id]
     assign_public_ip = true
   }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.app.arn
+    container_name   = "PSUniversal"
+    container_port   = 5000
+  }
+
+  depends_on = [aws_lb_listener.https, aws_lb_listener.http]
 }
 
 # # Note: To deploy your container image, you'll build and push to ECR manually or via CLI script below.
