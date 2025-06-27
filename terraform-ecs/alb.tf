@@ -17,7 +17,7 @@ resource "aws_lb" "main" {
 # Security Group for ALB
 #trivy:ignore:AVD-AWS-0104
 resource "aws_security_group" "alb_sg" {
-  name        = "alb-sg"
+  name_prefix = "alb-sg-"
   description = "Allow HTTP and HTTPS traffic"
   vpc_id      = data.aws_vpc.default.id
 
@@ -44,6 +44,10 @@ resource "aws_security_group" "alb_sg" {
 
   tags = {
     Name = "alb-security-group"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -72,13 +76,13 @@ resource "aws_lb_target_group" "app" {
   }
 }
 
-# ALB Listener for HTTPS
+# ALB Listener for HTTPS (temporarily without certificate validation)
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.main.arn
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
-  certificate_arn   = aws_acm_certificate_validation.main.certificate_arn
+  certificate_arn   = aws_acm_certificate.main.arn # Use certificate directly, not validation
 
   default_action {
     type             = "forward"

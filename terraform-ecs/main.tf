@@ -5,18 +5,18 @@ resource "aws_ecs_cluster" "main" {
   name = "fusion"
 }
 
-# Security Group allowing traffic from ALB
+# Security Group allowing traffic from ALB (simplified to break circular dependency)
 #trivy:ignore:AVD-AWS-0104
 resource "aws_security_group" "ecs_sg" {
-  name        = "ecs-sg"
+  name_prefix = "ecs-sg-"
   description = "Allow inbound traffic from ALB"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
-    from_port       = 5000
-    to_port         = 5000
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
+    from_port   = 5000
+    to_port     = 5000
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/8"] # Allow from VPC CIDR temporarily
   }
 
   egress {
@@ -24,6 +24,14 @@ resource "aws_security_group" "ecs_sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name = "ecs-security-group"
   }
 }
 
