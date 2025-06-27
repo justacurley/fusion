@@ -64,7 +64,7 @@ resource "aws_lb_target_group" "app" {
     healthy_threshold   = 2
     interval            = 30
     matcher             = "200"
-    path                = "/"
+    path                = "/api/v1/status"
     port                = "traffic-port"
     protocol            = "HTTP"
     timeout             = 5
