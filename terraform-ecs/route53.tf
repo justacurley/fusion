@@ -46,7 +46,7 @@ resource "aws_acm_certificate_validation" "main" {
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 
   timeouts {
-    create = "5m"
+    create = "10m" # Increased timeout for validation
   }
 }
 
@@ -89,5 +89,5 @@ output "domain_url" {
 
 output "certificate_arn" {
   description = "ACM Certificate ARN"
-  value       = aws_acm_certificate_validation.main.certificate_arn
+  value       = aws_acm_certificate.main.arn
 }

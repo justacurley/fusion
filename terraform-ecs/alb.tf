@@ -76,13 +76,16 @@ resource "aws_lb_target_group" "app" {
   }
 }
 
-# ALB Listener for HTTPS (temporarily without certificate validation)
+# ALB Listener for HTTP (redirects to HTTPS)
+# This listener is handled by the http_redirect listener below
+
+# ALB Listener for HTTPS
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.main.arn
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
-  certificate_arn   = aws_acm_certificate.main.arn # Use certificate directly, not validation
+  certificate_arn   = aws_acm_certificate_validation.main.certificate_arn
 
   default_action {
     type             = "forward"
@@ -90,8 +93,8 @@ resource "aws_lb_listener" "https" {
   }
 }
 
-# ALB Listener for HTTP (redirect to HTTPS)
-resource "aws_lb_listener" "http" {
+# HTTP to HTTPS redirect
+resource "aws_lb_listener" "http_redirect" {
   load_balancer_arn = aws_lb.main.arn
   port              = "80"
   protocol          = "HTTP"

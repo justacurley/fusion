@@ -107,7 +107,7 @@ resource "aws_ecs_service" "app" {
     container_port   = 5000
   }
 
-  depends_on = [aws_lb_listener.https, aws_lb_listener.http]
+  depends_on = [aws_lb_listener.https, aws_lb_listener.http_redirect]
 }
 
 # # Note: To deploy your container image, you'll build and push to ECR manually or via CLI script below.
