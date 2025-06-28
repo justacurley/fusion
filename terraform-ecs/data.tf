@@ -45,3 +45,14 @@ data "aws_efs_file_system" "psu" {
     Name = "PSU persistent storage"
   }
 }
+
+# Data sources for DNS resources managed by terraform-dns
+data "aws_route53_zone" "main" {
+  zone_id = "Z07475562COV510DW8WF8"
+}
+
+data "aws_acm_certificate" "main" {
+  domain      = "acurley.dev"
+  statuses    = ["ISSUED"]
+  most_recent = true
+}

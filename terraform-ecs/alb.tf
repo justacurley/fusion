@@ -85,7 +85,7 @@ resource "aws_lb_listener" "https" {
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
-  certificate_arn   = aws_acm_certificate_validation.main.certificate_arn
+  certificate_arn   = data.aws_acm_certificate.main.arn
 
   default_action {
     type             = "forward"
@@ -108,10 +108,4 @@ resource "aws_lb_listener" "http_redirect" {
       status_code = "HTTP_301"
     }
   }
-}
-
-# Output ALB information
-output "alb_dns_name" {
-  description = "ALB DNS name"
-  value       = aws_lb.main.dns_name
 }

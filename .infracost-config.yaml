@@ -1,0 +1,19 @@
+version: 0.1
+
+projects:
+  - path: terraform-ddb
+    name: terraform-ddb
+    skip_autodetect: true
+  - path: terraform-dns
+    name: terraform-dns
+    skip_autodetect: true
+  - path: terraform-ecr
+    name: terraform-ecr
+    skip_autodetect: true
+  - path: terraform-ecs
+    name: terraform-ecs
+    skip_autodetect: true
+  - path: terraform-efs
+    name: terraform-efs
+    skip_autodetect: true
+

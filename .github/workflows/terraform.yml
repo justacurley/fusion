@@ -30,6 +30,12 @@ jobs:
       with:
         tf-folder: './terraform-ddb'
 
+  deploy-dns:
+      uses: ./.github/workflows/deploy-tffolder.yml
+      secrets: inherit
+      with:
+        tf-folder: './terraform-dns'
+
   deploy-efs:
     uses: ./.github/workflows/deploy-tffolder.yml
     secrets: inherit
@@ -39,7 +45,7 @@ jobs:
   deploy-ecs:
     uses: ./.github/workflows/deploy-tffolder.yml
     secrets: inherit
-    needs: [deploy-efs, deploy-ecr, build-and-push-image, deploy-ddb]
+    needs: [deploy-efs, deploy-ecr, build-and-push-image, deploy-ddb, deploy-dns]
     with:
       tf-folder: './terraform-ecs'
 
