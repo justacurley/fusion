@@ -7,6 +7,9 @@ repos:
     - id: infracost_breakdown
       args:
         - --args= --path=./terraform-ecs 
+    - id: infracost_breakdown
+      args:
+        - --args= --path=./terraform-dns 
       verbose: true
     - id: terraform_trivy
       args:
