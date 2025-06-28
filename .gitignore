@@ -1,6 +1,6 @@
 #WSL
 img/*Zone.Identifier
-terraform-ecs/.infracost
+**/.infracost
 workspace/
 # Local .terraform directories
 **/.terraform/*

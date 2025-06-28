@@ -7,10 +7,11 @@ repos:
     - id: infracost_breakdown
       args:
         - --args= --path=./terraform-ecs 
+      verbose: true
     - id: infracost_breakdown
       args:
         - --args= --path=./terraform-dns 
-      verbose: true
+      verbose: false
     - id: terraform_trivy
       args:
         - --args= --severity CRITICAL
