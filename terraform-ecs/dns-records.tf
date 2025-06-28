@@ -1,15 +1,5 @@
-# Data source to reference the persistent DNS zone and certificate
-data "aws_route53_zone" "main" {
-  name = "acurley.dev"
-}
-
-data "aws_acm_certificate" "main" {
-  domain   = "acurley.dev"
-  statuses = ["ISSUED"]
-}
-
-# A record pointing to ALB for fusion subdomain (can be destroyed/recreated)
-resource "aws_route53_record" "fusion" {
+# DNS A record for the main application
+resource "aws_route53_record" "app" {
   zone_id = data.aws_route53_zone.main.zone_id
   name    = "fusion.acurley.dev"
   type    = "A"
@@ -21,10 +11,10 @@ resource "aws_route53_record" "fusion" {
   }
 }
 
-# Optional: Health subdomain A record (can be destroyed/recreated)
-resource "aws_route53_record" "health" {
+# Optional: Add www subdomain redirect (if needed)
+resource "aws_route53_record" "www_app" {
   zone_id = data.aws_route53_zone.main.zone_id
-  name    = "health.acurley.dev"
+  name    = "www.fusion.acurley.dev"
   type    = "A"
 
   alias {

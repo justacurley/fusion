@@ -25,3 +25,9 @@ output "ecs_cluster_name" {
   description = "Name of the ECS cluster"
   value       = aws_ecs_cluster.main.name
 }
+
+# DNS record outputs
+output "app_domain" {
+  description = "The domain name where the application is accessible"
+  value       = aws_route53_record.app.fqdn
+}
