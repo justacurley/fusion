@@ -6,12 +6,8 @@ repos:
     - id: terraform_docs
     - id: infracost_breakdown
       args:
-        - --args= --path=./terraform-ecs 
+        - --args= --config-file .infracost-config.yaml 
       verbose: true
-    - id: infracost_breakdown
-      args:
-        - --args= --path=./terraform-dns 
-      verbose: false
     - id: terraform_trivy
       args:
         - --args= --severity CRITICAL
