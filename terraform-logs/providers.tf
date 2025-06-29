@@ -15,4 +15,7 @@ terraform {
 provider "azurerm" {
   features {}
   skip_provider_registration = true
+
+  # Explicitly disable CLI authentication to force env var usage
+  use_cli = false
 }
