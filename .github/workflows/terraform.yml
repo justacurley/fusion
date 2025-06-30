@@ -16,6 +16,11 @@ env:
   TF_VERSION: 1.12.2
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  # Azure credentials for Azure resources
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
 jobs:
   deploy-ecr:
@@ -41,6 +46,12 @@ jobs:
     secrets: inherit
     with:
       tf-folder: './terraform-efs'
+
+  deploy-azure-logs:
+    uses: ./.github/workflows/deploy-tffolder.yml
+    secrets: inherit
+    with:
+      tf-folder: './terraform-logs'
 
   deploy-ecs:
     uses: ./.github/workflows/deploy-tffolder.yml

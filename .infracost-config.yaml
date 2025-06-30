@@ -16,4 +16,7 @@ projects:
   - path: terraform-efs
     name: terraform-efs
     skip_autodetect: true
+  - path: terraform-logs
+    name: terraform-logs
+    skip_autodetect: true
 
